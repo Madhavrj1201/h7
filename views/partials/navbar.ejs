@@ -1,0 +1,22 @@
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Campus Bridge</a>
+    </div>
+    <div class="nav-links">
+        <% if (user) { %>
+            <% if (user.role === 'student') { %>
+                <a href="/student/dashboard">Dashboard</a>
+                <a href="/student/courses">Courses</a>
+            <% } else if (user.role === 'faculty') { %>
+                <a href="/faculty/dashboard">Dashboard</a>
+                <a href="/faculty/courses">My Courses</a>
+            <% } else if (user.role === 'admin') { %>
+                <a href="/admin/dashboard">Dashboard</a>
+            <% } %>
+            <a href="/auth/logout">Logout</a>
+        <% } else { %>
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Register</a>
+        <% } %>
+    </div>
+</nav>

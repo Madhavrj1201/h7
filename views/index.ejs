@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Campus Bridge</div>
+        <div class="nav-links">
+            <% if (user) { %>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/auth/logout">Logout</a>
+            <% } else { %>
+                <a href="/auth/login">Login</a>
+                <a href="/auth/register">Register</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Welcome to Campus Bridge</h1>
+        <p>Integrated Academic LMS + Coding Skill Development Platform</p>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>Academic LMS</h3>
+                <p>Manage courses, attendance, and assessments</p>
+            </div>
+            <div class="feature-card">
+                <h3>Coding Platform</h3>
+                <p>Practice coding with built-in compiler and AI assistance</p>
+            </div>
+            <div class="feature-card">
+                <h3>Smart Learning</h3>
+                <p>AI-powered hints and personalized learning paths</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Campus Bridge. All rights reserved.</p>
+    </footer>
+</body>
+</html>

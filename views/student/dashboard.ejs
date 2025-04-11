@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <h2>Welcome, <%= user.profile.firstName || user.username %></h2>
+        
+        <section class="enrolled-courses">
+            <h3>My Courses</h3>
+            <div class="courses-grid">
+                <% if (courses.length > 0) { %>
+                    <% courses.forEach(course => { %>
+                        <div class="course-card">
+                            <h4><%= course.title %></h4>
+                            <p><%= course.description %></p>
+                            <p>Instructor: <%= course.instructor.profile.firstName %> <%= course.instructor.profile.lastName %></p>
+                            <a href="/student/courses/<%= course._id %>" class="btn btn-primary">View Course</a>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>You are not enrolled in any courses yet.</p>
+                    <a href="/student/courses" class="btn btn-primary">Browse Courses</a>
+                <% } %>
+            </div>
+        </section>
+    </main>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

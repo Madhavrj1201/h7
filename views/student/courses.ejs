@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <h2>Available Courses</h2>
+        
+        <div class="courses-grid">
+            <% if (courses.length > 0) { %>
+                <% courses.forEach(course => { %>
+                    <div class="course-card">
+                        <h3><%= course.title %></h3>
+                        <p><%= course.description %></p>
+                        <p>Instructor: <%= course.instructor.profile.firstName %> <%= course.instructor.profile.lastName %></p>
+                        <p>Type: <%= course.type.charAt(0).toUpperCase() + course.type.slice(1) %></p>
+                        <form action="/student/courses/<%= course._id %>/enroll" method="POST">
+                            <button type="submit" class="btn btn-primary">Enroll</button>
+                        </form>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p>No courses available at the moment.</p>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

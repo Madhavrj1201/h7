@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Mock Test - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.css">
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h2><%= mockTest.title %></h2>
+            <div class="timer" id="timer">
+                Time Remaining: <span id="time-left"></span>
+            </div>
+        </div>
+
+        <form id="testForm" action="/mock-tests/<%= mockTest._id %>/submit" method="POST">
+            <div class="questions">
+                <% mockTest.questions.forEach((question, index) => { %>
+                    <div class="question-card">
+                        <h3>Question <%= index + 1 %></h3>
+                        <p><%= question.question %></p>
+                        
+                        <% if (question.type === 'mcq') { %>
+                            <div class="options">
+                                <% question.options.forEach((option, optIndex) => { %>
+                                    <div class="option">
+                                        <input type="radio" 
+                                               name="answers[<%= index %>]" 
+                                               value="<%= optIndex %>"
+                                               id="q<%= index %>_opt<%= optIndex %>">
+                                        <label for="q<%= index %>_opt<%= optIndex %>">
+                                            <%= option %>
+                                        </label>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else if (question.type === 'coding') { %>
+                            <div class="coding-question">
+                                <div id="editor-<%= index %>" class="code-editor"></div>
+                                <input type="hidden" name="answers[<%= index %>]" id="code-<%= index %>">
+                                <div class="language-select">
+                                    <select name="language[<%= index %>]">
+                                        <option value="javascript">JavaScript</option>
+                                        <option value="python">Python</option>
+                                        <option value="java">Java</option>
+                                        <option value="cpp">C++</option>
+                                    </select>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <textarea name="answers[<%= index %>]" 
+                                      rows="4" 
+                                      class="descriptive-answer"
+                                      placeholder="Type your answer here..."></textarea>
+                        <% } %>
+                    </div>
+                <% }) %>
+            </div>
+
+            <div class="test-footer">
+                <button type="submit" class="btn btn-primary">Submit Test</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.js"></script>
+    <script>
+        // Timer setup
+        const duration = <%= mockTest.duration %> * 60; // Convert to seconds
+        let timeLeft = duration;
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('time-left').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft === 0) {
+                document.getElementById('testForm').submit();
+            } else {
+                timeLeft--;
+            }
+        }
+        
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // Monaco editor setup for coding questions
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            document.querySelectorAll('.code-editor').forEach((element, index) => {
+                const editor = monaco.editor.create(element, {
+                    value: '// Write your code here\n',
+                    language: 'javascript',
+                    theme: 'vs-dark',
+                    minimap: { enabled: false }
+                });
+
+                editor.onDidChangeModelContent(() => {
+                    document.getElementById(`code-${index}`).value = editor.getValue();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

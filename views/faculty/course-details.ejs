@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="course-header">
+            <h2><%= course.title %></h2>
+            <p class="course-code">Course Code: <%= course.code %></p>
+        </div>
+
+        <div class="course-content">
+            <!-- Course Information -->
+            <section class="content-section">
+                <h3>Course Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Type:</label>
+                        <span><%= course.type %></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Students:</label>
+                        <span><%= course.students.length %></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Schedule:</label>
+                        <% course.schedule.forEach(schedule => { %>
+                            <div class="schedule-item">
+                                <%= schedule.day %> <%= schedule.startTime %>-<%= schedule.endTime %>
+                                (Room: <%= schedule.room %>)
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Management -->
+            <section class="content-section">
+                <h3>Course Content</h3>
+                <button class="btn btn-primary" onclick="showAddContentModal()">Add Content</button>
+                
+                <div class="content-list">
+                    <% course.content.forEach((item, index) => { %>
+                        <div class="content-item">
+                            <h4><%= item.title %></h4>
+                            <p>Type: <%= item.type %></p>
+                            <% if (item.dueDate) { %>
+                                <p>Due: <%= new Date(item.dueDate).toLocaleDateString() %></p>
+                            <% } %>
+                            <div class="content-actions">
+                                <button class="btn btn-secondary" onclick="editContent(<%= index %>)">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteContent(<%= index %>)">Delete</button>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+            <!-- Attendance Management -->
+            <section class="content-section">
+                <h3>Attendance</h3>
+                <form action="/faculty/attendance/mark" method="POST" class="attendance-form">
+                    <input type="hidden" name="courseId" value="<%= course._id %>">
+                    <div class="attendance-date">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="students-list">
+                        <% course.students.forEach(student => { %>
+                            <div class="student-attendance">
+                                <span><%= student.profile.firstName %> <%= student.profile.lastName %></span>
+                                <select name="attendance[<%= student._id %>]">
+                                    <option value="present">Present</option>
+                                    <option value="absent">Absent</option>
+                                    <option value="late">Late</option>
+                                </select>
+                            </div>
+                        <% }) %>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Attendance</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <!-- Add Content Modal -->
+    <div id="addContentModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Course Content</h3>
+            <form action="/faculty/courses/<%= course._id %>/content" method="POST">
+                <div class="form-group">
+                    <label for="contentTitle">Title</label>
+                    <input type="text" id="contentTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="contentType">Type</label>
+                    <select id="contentType" name="type" required>
+                        <option value="lecture">Lecture</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="quiz">Quiz</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="contentDescription">Description</label>
+                    <textarea id="contentDescription" name="description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="dueDate">Due Date (if applicable)</label>
+                    <input type="datetime-local" id="dueDate" name="dueDate">
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Add Content</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideAddContentModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        function showAddContentModal() {
+            document.getElementById('addContentModal').style.display = 'block';
+        }
+
+        function hideAddContentModal() {
+            document.getElementById('addContentModal').style.display = 'none';
+        }
+
+        function editContent(index) {
+            // Implement content editing
+        }
+
+        function deleteContent(index) {
+            if (confirm('Are you sure you want to delete this content?')) {
+                // Implement content deletion
+            }
+        }
+    </script>
+</body>
+</html>

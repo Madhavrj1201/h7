@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h2>Faculty Dashboard</h2>
+            <div class="quick-actions">
+                <a href="/faculty/courses/new" class="btn btn-primary">Create Course</a>
+                <a href="/faculty/assignments/new" class="btn btn-secondary">Create Assignment</a>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Courses Overview -->
+            <section class="dashboard-section">
+                <h3>My Courses</h3>
+                <div class="courses-grid">
+                    <% courses.forEach(course => { %>
+                        <div class="course-card">
+                            <h4><%= course.title %></h4>
+                            <p><%= course.code %></p>
+                            <div class="course-stats">
+                                <span>Students: <%= course.students.length %></span>
+                                <span>Assignments: <%= course.assignments.length %></span>
+                            </div>
+                            <a href="/faculty/courses/<%= course._id %>" class="btn btn-primary">Manage Course</a>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+            <!-- Student Performance -->
+            <section class="dashboard-section">
+                <h3>Student Performance</h3>
+                <div class="performance-charts">
+                    <div class="chart-container">
+                        <canvas id="assignmentChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Activities -->
+            <section class="dashboard-section">
+                <h3>Recent Activities</h3>
+                <div class="activity-list">
+                    <% activities.forEach(activity => { %>
+                        <div class="activity-item">
+                            <span class="activity-time"><%= activity.timestamp %></span>
+                            <p class="activity-text"><%= activity.description %></p>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        // Initialize charts
+        const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');
+        const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+
+        new Chart(assignmentCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Assignment 1', 'Assignment 2', 'Assignment 3'],
+                datasets: [{
+                    label: 'Average Score',
+                    data: [85, 76, 92],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        new Chart(attendanceCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'Attendance Rate',
+                    data: [95, 88, 92, 85],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+</body>
+</html>

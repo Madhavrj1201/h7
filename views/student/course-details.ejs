@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="course-header">
+            <h2><%= course.title %></h2>
+            <p class="course-code">Course Code: <%= course.code %></p>
+            <p class="instructor">Instructor: <%= course.instructor.profile.firstName %> <%= course.instructor.profile.lastName %></p>
+        </div>
+
+        <div class="course-content">
+            <h3>Course Content</h3>
+            <% if (course.content && course.content.length > 0) { %>
+                <div class="content-list">
+                    <% course.content.forEach(item => { %>
+                        <div class="content-item">
+                            <h4><%= item.title %></h4>
+                            <p>Type: <%= item.type %></p>
+                            <% if (item.dueDate) { %>
+                                <p>Due: <%= new Date(item.dueDate).toLocaleDateString() %></p>
+                            <% } %>
+                            <div class="content-body">
+                                <%= item.content %>
+                            </div>
+                            <% if (item.attachments && item.attachments.length > 0) { %>
+                                <div class="attachments">
+                                    <h5>Attachments:</h5>
+                                    <ul>
+                                        <% item.attachments.forEach(attachment => { %>
+                                            <li><a href="<%= attachment %>">Download</a></li>
+                                        <% }) %>
+                                    </ul>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p>No content available for this course yet.</p>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

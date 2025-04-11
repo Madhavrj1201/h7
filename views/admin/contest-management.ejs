@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contest Management - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="contest-header">
+            <h2>Contest Management</h2>
+            <button class="btn btn-primary" onclick="showCreateContestModal()">Create New Contest</button>
+        </div>
+
+        <div class="contests-grid">
+            <!-- Active Contests -->
+            <section class="contests-section">
+                <h3>Active Contests</h3>
+                <div class="contest-list">
+                    <% activeContests.forEach(contest => { %>
+                        <div class="contest-card">
+                            <h4><%= contest.title %></h4>
+                            <p><%= contest.description %></p>
+                            <div class="contest-details">
+                                <span>Participants: <%= contest.participants.length %></span>
+                                <span>Problems: <%= contest.problems.length %></span>
+                                <span>End Time: <%= new Date(contest.endDate).toLocaleString() %></span>
+                            </div>
+                            <div class="contest-actions">
+                                <button class="btn btn-secondary" onclick="viewLeaderboard('<%= contest._id %>')">Leaderboard</button>
+                                <button class="btn btn-danger" onclick="endContest('<%= contest._id %>')">End Contest</button>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+            <!-- Upcoming Contests -->
+            <section class="contests-section">
+                <h3>Upcoming Contests</h3>
+                <div class="contest-list">
+                    <% upcomingContests.forEach(contest => { %>
+                        <div class="contest-card">
+                            <h4><%= contest.title %></h4>
+                            <p><%= contest.description %></p>
+                            <div class="contest-details">
+                                <span>Start Time: <%= new Date(contest.startDate).toLocaleString() %></span>
+                                <span>Duration: <%= contest.duration %> minutes</span>
+                            </div>
+                            <div class="contest-actions">
+                                <button class="btn btn-secondary" onclick="editContest('<%= contest._id %>')">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteContest('<%= contest._id %>')">Delete</button>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Create Contest Modal -->
+    <div id="createContestModal" class="modal">
+        <div class="modal-content">
+            <h3>Create New Contest</h3>
+            <form id="contestForm" action="/admin/contests/new" method="POST">
+                <div class="form-group">
+                    <label for="title">Contest Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date & Time</label>
+                    <input type="datetime-local" id="startDate" name="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (minutes)</label>
+                    <input type="number" id="duration" name="duration" required>
+                </div>
+                <div id="problemsContainer">
+                    <h4>Problems</h4>
+                    <button type="button" class="btn btn-secondary" onclick="addProblem()">Add Problem</button>
+                    <div class="problems-list"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Create Contest</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideCreateContestModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.js"></script>
+    <script>
+        function showCreateContestModal() {
+            document.getElementById('createContestModal').style.display = 'block';
+        }
+
+        function hideCreateContestModal() {
+            document.getElementById('createContestModal').style.display = 'none';
+        }
+
+        function addProblem() {
+            const problemsList = document.querySelector('.problems-list');
+            const problemDiv = document.createElement('div');
+            problemDiv.className = 'problem-item';
+            problemDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Problem Title</label>
+                    <input type="text" name="problems[][title]" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="problems[][description]" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select name="problems[][difficulty]">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Points</label>
+                    <input type="number" name="problems[][points]" required>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">Remove Problem</button>
+            `;
+            problemsList.appendChild(problemDiv);
+        }
+
+        function viewLeaderboard(contestId) {
+            window.location.href = `/admin/contests/${contestId}/leaderboard`;
+        }
+
+        function endContest(contestId) {
+            if (confirm('Are you sure you want to end this contest?')) {
+                fetch(`/admin/contests/${contestId}/end`, {
+                    method: 'POST'
+                }).then(() => window.location.reload());
+            }
+        }
+
+        function editContest(contestId) {
+            window.location.href = `/admin/contests/${contestId}/edit`;
+        }
+
+        function deleteContest(contestId) {
+            if (confirm('Are you sure you want to delete this contest?')) {
+                fetch(`/admin/contests/${contestId}`, {
+                    method: 'DELETE'
+                }).then(() => window.location.reload());
+            }
+        }
+    </script>
+</body>
+</html>

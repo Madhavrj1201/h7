@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    <main class="container">
+        <div class="reports-header">
+            <h2>Performance Reports</h2>
+            <div class="report-filters">
+                <select id="reportType">
+                    <option value="academic">Academic Performance</option>
+                    <option value="coding">Coding Skills</option>
+                    <option value="placement">Placement Readiness</option>
+                </select>
+                <select id="dateRange">
+                    <option value="week">Last Week</option>
+                    <option value="month">Last Month</option>
+                    <option value="semester">This Semester</option>
+                </select>
+                <button onclick="generateReport()" class="btn btn-primary">Generate Report</button>
+            </div>
+        </div>
+        
+        <div class="reports-grid">
+            <!-- Performance Metrics -->
+            <section class="report-section">
+                <h3>Key Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>Average CGPA</h4>
+                        <p class="metric-value">8.45</p>
+                        <p class="metric-trend positive">↑ 0.3</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Coding Skill Score</h4>
+                        <p class="metric-value">76%</p>
+                        <p class="metric-trend positive">↑ 5%</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Placement Ready</h4>
+                        <p class="metric-value">85%</p>
+                        <p class="metric-trend negative">↓ 2%</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Analytics -->
+            <section class="report-section">
+                <h3>Performance Distribution</h3>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <canvas id="academicChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Department Wise Analysis -->
+            <section class="report-section">
+                <h3>Department Analysis</h3>
+                <table class="department-table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Students</th>
+                            <th>Avg. CGPA</th>
+                            <th>Coding Score</th>
+                            <th>Placement %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% departments.forEach(dept => { %>
+                            <tr>
+                                <td><%= dept.name %></td>
+                                <td><%= dept.studentCount %></td>
+                                <td><%= dept.avgCGPA %></td>
+                                <td><%= dept.codingScore %>%</td>
+                                <td><%= dept.placementPercentage %>%</td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        function generateReport() {
+            const type = document.getElementById('reportType').value;
+            const dateRange = document.getElementById('dateRange').value;
+            
+            fetch(`/admin/reports/generate?type=${type}&dateRange=${dateRange}`)
+                .then(response => response.json())
+                .then(data => updateCharts(data));
+        }
+
+        function updateCharts(data) {
+            // Update charts with new data
+            const academicCtx = document.getElementById('academicChart').getContext('2d');
+            const skillsCtx = document.getElementById('skillsChart').getContext('2d');
+
+            new Chart(academicCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-6', '6-7', '7-8', '8-9', '9-10'],
+                    datasets: [{
+                        label: 'CGPA Distribution',
+                        data: data.cgpaDistribution,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(skillsCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['DSA', 'Web Dev', 'Python', 'Java', 'Problem Solving'],
+                    datasets: [{
+                        label: 'Average Skill Level',
+                        data: data.skillLevels,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgb(75, 192, 192)',
+                        pointBackgroundColor: 'rgb(75, 192, 192)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { r: { beginAtZero: true } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

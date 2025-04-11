@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Problems - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="problems-header">
+            <h2>Coding Problems</h2>
+            <div class="filters">
+                <select id="difficultyFilter" onchange="applyFilters()">
+                    <option value="">All Difficulties</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <select id="categoryFilter" onchange="applyFilters()">
+                    <option value="">All Categories</option>
+                    <option value="arrays">Arrays</option>
+                    <option value="strings">Strings</option>
+                    <option value="dp">Dynamic Programming</option>
+                    <option value="graphs">Graphs</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="problems-list">
+            <table class="problems-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Difficulty</th>
+                        <th>Category</th>
+                        <th>Success Rate</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% problems.forEach(problem => { %>
+                        <tr>
+                            <td>
+                                <a href="/student/problems/<%= problem._id %>/solve">
+                                    <%= problem.title %>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="difficulty-badge <%= problem.difficulty %>">
+                                    <%= problem.difficulty %>
+                                </span>
+                            </td>
+                            <td><%= problem.category %></td>
+                            <td>
+                                <% const successRate = calculateSuccessRate(problem.submissions); %>
+                                <%= successRate %>%
+                            </td>
+                            <td>
+                                <a href="/student/problems/<%= problem._id %>/solve" 
+                                   class="btn btn-primary btn-sm">Solve</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        function calculateSuccessRate(submissions) {
+            if (!submissions || submissions.length === 0) return 0;
+            const successful = submissions.filter(s => s.status === 'Accepted').length;
+            return Math.round((successful / submissions.length) * 100);
+        }
+
+        function applyFilters() {
+            const difficulty = document.getElementById('difficultyFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+            
+            window.location.href = `/student/problems?difficulty=${difficulty}&category=${category}`;
+        }
+    </script>
+
+    <style>
+        .problems-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .problems-table th,
+        .problems-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .difficulty-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .difficulty-badge.easy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .difficulty-badge.medium {
+            background: #ff9800;
+            color: white;
+        }
+
+        .difficulty-badge.hard {
+            background: #f44336;
+            color: white;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</body>
+</html>

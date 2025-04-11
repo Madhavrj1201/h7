@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Tests - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <h2>Available Mock Tests</h2>
+        
+        <div class="mock-tests-grid">
+            <% mockTests.forEach(test => { %>
+                <div class="test-card">
+                    <h3><%= test.title %></h3>
+                    <p><%= test.description %></p>
+                    <div class="test-details">
+                        <p><strong>Type:</strong> <%= test.type %></p>
+                        <p><strong>Duration:</strong> <%= test.duration %> minutes</p>
+                        <p><strong>Scheduled for:</strong> <%= new Date(test.scheduledFor).toLocaleString() %></p>
+                    </div>
+                    <div class="eligibility">
+                        <h4>Eligibility Criteria</h4>
+                        <ul>
+                            <% if (test.eligibilityCriteria.minCGPA) { %>
+                                <li>Minimum CGPA: <%= test.eligibilityCriteria.minCGPA %></li>
+                            <% } %>
+                            <% if (test.eligibilityCriteria.requiredSkills) { %>
+                                <li>Required Skills: <%= test.eligibilityCriteria.requiredSkills.join(', ') %></li>
+                            <% } %>
+                        </ul>
+                    </div>
+                    <% if (test.status === 'scheduled') { %>
+                        <form action="/mock-tests/<%= test._id %>/start" method="POST">
+                            <button type="submit" class="btn btn-primary">Start Test</button>
+                        </form>
+                    <% } else if (test.status === 'completed') { %>
+                        <p class="test-status completed">Test Completed</p>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

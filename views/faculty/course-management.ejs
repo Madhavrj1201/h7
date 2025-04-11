@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="course-header">
+            <h2><%= course.title %></h2>
+            <p class="course-code">Course Code: <%= course.code %></p>
+        </div>
+
+        <div class="management-grid">
+            <!-- Content Management -->
+            <section class="management-section">
+                <h3>Course Content</h3>
+                <div class="content-tabs">
+                    <button class="tab-btn active" onclick="showTab('upload')">Upload Content</button>
+                    <button class="tab-btn" onclick="showTab('quiz')">Create Quiz</button>
+                    <button class="tab-btn" onclick="showTab('coding')">Coding Assignment</button>
+                </div>
+
+                <!-- Upload Content Form -->
+                <div id="uploadTab" class="tab-content active">
+                    <form action="/faculty/courses/<%= course._id %>/content" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Content Type</label>
+                            <select id="type" name="type" required>
+                                <option value="lecture">Lecture</option>
+                                <option value="assignment">Assignment</option>
+                                <option value="resource">Resource</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="files">Upload Files (PDF, Video, Images)</label>
+                            <input type="file" id="files" name="files" multiple accept=".pdf,.mp4,.webm,.jpg,.png,.pptx">
+                            <small>Max 5 files, 50MB each</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Due Date (if applicable)</label>
+                            <input type="datetime-local" id="dueDate" name="dueDate">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Content</button>
+                    </form>
+                </div>
+
+                <!-- Quiz Creation Form -->
+                <div id="quizTab" class="tab-content">
+                    <form id="quizForm" onsubmit="submitQuiz(event)">
+                        <div class="form-group">
+                            <label for="quizTitle">Quiz Title</label>
+                            <input type="text" id="quizTitle" required>
+                        </div>
+                        <div id="questionsContainer">
+                            <!-- Questions will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addQuestion()">Add Question</button>
+                        <button type="submit" class="btn btn-primary">Create Quiz</button>
+                    </form>
+                </div>
+
+                <!-- Coding Assignment Creation -->
+                <div id="codingTab" class="tab-content">
+                    <div class="form-group">
+                        <label for="assignmentTitle">Assignment Title</label>
+                        <input type="text" id="assignmentTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignmentDescription">Problem Description</label>
+                        <textarea id="assignmentDescription" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Template Code</label>
+                        <div id="codeEditor" style="height: 300px;"></div>
+                    </div>
+                    <div class="test-cases">
+                        <h4>Test Cases</h4>
+                        <div id="testCasesContainer"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addTestCase()">Add Test Case</button>
+                    </div>
+                    <button onclick="saveAssignment()" class="btn btn-primary">Create Assignment</button>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="management-section">
+                <h3>Course Analytics</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>Student Performance</h4>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Weekly Engagement</h4>
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Assignment Completion</h4>
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Student List -->
+            <section class="management-section">
+                <h3>Enrolled Students</h3>
+                <div class="students-list">
+                    <% course.students.forEach(student => { %>
+                        <div class="student-card">
+                            <div class="student-info">
+                                <h4><%= student.profile.firstName %> <%= student.profile.lastName %></h4>
+                                <p>Enrollment: <%= student.profile.enrollmentNumber %></p>
+                            </div>
+                            <div class="student-progress">
+                                <div class="progress-item">
+                                    <span>Attendance</span>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: <%= calculateAttendance(student._id, course.attendance) %>%"></div>
+                                    </div>
+                                </div>
+                                <div class="progress-item">
+                                    <span>Assignments</span>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: <%= calculateProgress(student._id, course.assignments) %>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="viewStudentDetails('<%= student._id %>')" class="btn btn-secondary">View Details</button>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.js"></script>
+    <script>
+        // Initialize Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            window.editor = monaco.editor.create(document.getElementById('codeEditor'), {
+                value: '// Write your template code here\n',
+                language: 'javascript',
+                theme: 'vs-dark'
+            });
+        });
+
+        // Tab Management
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Quiz Management
+        function addQuestion() {
+            const container = document.getElementById('questionsContainer');
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-item';
+            questionDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Question</label>
+                    <input type="text" class="question-text" required>
+                </div>
+                <div class="options-container">
+                    <div class="option-item">
+                        <input type="text" placeholder="Option 1" required>
+                        <input type="radio" name="correct_${Date.now()}" value="0" required>
+                    </div>
+                    <div class="option-item">
+                        <input type="text" placeholder="Option 2" required>
+                        <input type="radio" name="correct_${Date.now()}" value="1">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">Remove Question</button>
+            `;
+            container.appendChild(questionDiv);
+        }
+
+        async function submitQuiz(event) {
+            event.preventDefault();
+            const questions = [];
+            document.querySelectorAll('.question-item').forEach(item => {
+                const questionText = item.querySelector('.question-text').value;
+                const options = Array.from(item.querySelectorAll('.option-item input[type="text"]'))
+                    .map(opt => opt.value);
+                const correctAnswer = parseInt(
+                    item.querySelector('input[type="radio"]:checked').value
+                );
+                questions.push({
+                    question: questionText,
+                    options,
+                    correctAnswer,
+                    points: 10
+                });
+            });
+
+            try {
+                const response = await fetch(`/faculty/courses/<%= course._id %>/quiz`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: document.getElementById('quizTitle').value,
+                        questions: JSON.stringify(questions)
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Quiz created successfully!');
+                    location.reload();
+                } else {
+                    throw new Error('Failed to create quiz');
+                }
+            } catch (error) {
+                alert('Error creating quiz: ' + error.message);
+            }
+        }
+
+        // Coding Assignment Management
+        function addTestCase() {
+            const container = document.getElementById('testCasesContainer');
+            const testCase = document.createElement('div');
+            testCase.className = 'test-case';
+            testCase.innerHTML = `
+                <div class="form-group">
+                    <label>Input</label>
+                    <textarea class="test-input" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Expected Output</label>
+                    <textarea class="test-output" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Points</label>
+                    <input type="number" class="test-points" value="10" min="0" required>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(testCase);
+        }
+
+        async function saveAssignment() {
+            const testCases = Array.from(document.querySelectorAll('.test-case')).map(tc => ({
+                input: tc.querySelector('.test-input').value,
+                expectedOutput: tc.querySelector('.test-output').value,
+                points: parseInt(tc.querySelector('.test-points').value)
+            }));
+
+            try {
+                const response = await fetch('/faculty/assignments/new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: document.getElementById('assignmentTitle').value,
+                        description: document.getElementById('assignmentDescription').value,
+                        testCases: JSON.stringify(testCases),
+                        courseId: '<%= course._id %>',
+                        dueDate: document.getElementById('dueDate').value
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Assignment created successfully!');
+                    location.reload();
+                } else {
+                    throw new Error('Failed to create assignment');
+                }
+            } catch (error) {
+                alert('Error creating assignment: ' + error.message);
+            }
+        }
+
+        // Analytics Charts
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`/faculty/courses/<%= course._id %>/analytics`);
+                const analytics = await response.json();
+
+                // Performance Distribution Chart
+                new Chart(document.getElementById('performanceChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(analytics.performanceDistribution),
+                        datasets: [{
+                            label: 'Number of Students',
+                            data: Object.values(analytics.performanceDistribution),
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Weekly Engagement Chart
+                new Chart(document.getElementById('engagementChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Submissions',
+                            data: analytics.weeklyEngagement,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+
+                // Assignment Completion Chart
+                new Chart(document.getElementById('completionChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'In Progress', 'Not Started'],
+                        datasets: [{
+                            data: [
+                                analytics.assignmentCompletion.filter(x => x === 100).length,
+                                analytics.assignmentCompletion.filter(x => x > 0 && x < 100).length,
+                                analytics.assignmentCompletion.filter(x => x === 0).length
+                            ],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(255, 99, 132, 0.5)'
+                            ]
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            addQuestion(); // Add initial question for quiz
+            addTestCase(); // Add initial test case for coding assignment
+        });
+
+        // Helper Functions
+        function calculateAttendance(studentId, attendance) {
+            if (!attendance || !attendance.length) return 0;
+            const present = attendance.filter(record => 
+                record.students.find(s => 
+                    s.student.toString() === studentId.toString() && 
+                    s.status === 'present'
+                )
+            ).length;
+            return (present / attendance.length) * 100;
+        }
+
+        function calculateProgress(studentId, assignments) {
+            if (!assignments || !assignments.length) return 0;
+            const completed = assignments.filter(assignment =>
+                assignment.submissions.some(s => 
+                    s.student.toString() === studentId.toString()
+                )
+            ).length;
+            return (completed / assignments.length) * 100;
+        }
+
+        function viewStudentDetails(studentId) {
+            // Implement student details view
+            window.location.href = `/faculty/students/${studentId}/details?courseId=<%= course._id %>`;
+        }
+    </script>
+
+    <style>
+        .management-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .management-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .content-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f0f0f0;
+        }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .analytics-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .students-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .student-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        .test-case {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .question-item {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</body>
+</html>

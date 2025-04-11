@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Campus Bridge</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <div class="quick-actions">
+                <a href="/admin/contests/new" class="btn btn-primary">Create Contest</a>
+                <a href="/admin/reports" class="btn btn-secondary">Generate Reports</a>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Statistics Overview -->
+            <section class="dashboard-section">
+                <h3>Platform Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Students</h4>
+                        <p class="stat-number"><%= stats.totalStudents %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Faculty</h4>
+                        <p class="stat-number"><%= stats.totalFaculty %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Courses</h4>
+                        <p class="stat-number"><%= stats.totalCourses %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Contests</h4>
+                        <p class="stat-number"><%= stats.activeContests %></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Analytics -->
+            <section class="dashboard-section">
+                <h3>Performance Analytics</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>Student Performance Distribution</h4>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Course Engagement</h4>
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Top Performers -->
+            <section class="dashboard-section">
+                <h3>Top Performers</h3>
+                <div class="performers-list">
+                    <% topPerformers.forEach((student, index) => { %>
+                        <div class="performer-card">
+                            <span class="rank">#<%= index + 1 %></span>
+                            <div class="performer-info">
+                                <h4><%= student.profile.firstName %> <%= student.profile.lastName %></h4>
+                                <p>Skill Score: <%= student.profile.skillScore %></p>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+            <!-- Recent Activities -->
+            <section class="dashboard-section">
+                <h3>System Activities</h3>
+                <div class="activity-list">
+                    <% activities.forEach(activity => { %>
+                        <div class="activity-item">
+                            <span class="activity-time"><%= activity.timestamp %></span>
+                            <span class="activity-text"><%= activity.description %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        // Initialize charts
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+
+        // Performance Distribution Chart
+        new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                datasets: [{
+                    label: 'Students',
+                    data: [12, 19, 25, 16, 8],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Engagement Chart
+        new Chart(engagementCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'Course Activity',
+                    data: [65, 75, 82, 78],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+</html>
